@@ -1,0 +1,22 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     'build/debug/play'
+relocations:
+  - { offsetInCU: 0x26, offset: 0x26, size: 0x8, addend: 0x0, symName: __ZN4GameC2Ev, symObjAddr: 0x0, symBinAddr: 0x100003B00, symSize: 0x14 }
+  - { offsetInCU: 0x39, offset: 0x39, size: 0x8, addend: 0x0, symName: __ZN4Game8rendererE, symObjAddr: 0x95A0, symBinAddr: 0x100008000, symSize: 0x0 }
+  - { offsetInCU: 0x1804, offset: 0x1804, size: 0x8, addend: 0x0, symName: __ZN4Game5eventE, symObjAddr: 0x95A8, symBinAddr: 0x100008008, symSize: 0x0 }
+  - { offsetInCU: 0x1817, offset: 0x1817, size: 0x8, addend: 0x0, symName: __ZN4Game9isRunningE, symObjAddr: 0x95E0, symBinAddr: 0x100008040, symSize: 0x0 }
+  - { offsetInCU: 0x43CE, offset: 0x43CE, size: 0x8, addend: 0x0, symName: __ZN4GameC2Ev, symObjAddr: 0x0, symBinAddr: 0x100003B00, symSize: 0x14 }
+  - { offsetInCU: 0x43F8, offset: 0x43F8, size: 0x8, addend: 0x0, symName: __ZN4GameC1Ev, symObjAddr: 0x14, symBinAddr: 0x100003B14, symSize: 0x2C }
+  - { offsetInCU: 0x4422, offset: 0x4422, size: 0x8, addend: 0x0, symName: __ZN4GameD2Ev, symObjAddr: 0x40, symBinAddr: 0x100003B40, symSize: 0x14 }
+  - { offsetInCU: 0x444C, offset: 0x444C, size: 0x8, addend: 0x0, symName: __ZN4GameD1Ev, symObjAddr: 0x54, symBinAddr: 0x100003B54, symSize: 0x2C }
+  - { offsetInCU: 0x4476, offset: 0x4476, size: 0x8, addend: 0x0, symName: __ZN4Game4initEPKciib, symObjAddr: 0x80, symBinAddr: 0x100003B80, symSize: 0xF0 }
+  - { offsetInCU: 0x44E2, offset: 0x44E2, size: 0x8, addend: 0x0, symName: __ZN4Game12handleEventsEv, symObjAddr: 0x170, symBinAddr: 0x100003C70, symSize: 0x58 }
+  - { offsetInCU: 0x4508, offset: 0x4508, size: 0x8, addend: 0x0, symName: __ZN4Game6updateEv, symObjAddr: 0x1C8, symBinAddr: 0x100003CC8, symSize: 0x10 }
+  - { offsetInCU: 0x452E, offset: 0x452E, size: 0x8, addend: 0x0, symName: __ZN4Game6renderEv, symObjAddr: 0x1D8, symBinAddr: 0x100003CD8, symSize: 0x38 }
+  - { offsetInCU: 0x4554, offset: 0x4554, size: 0x8, addend: 0x0, symName: __ZN4Game5cleanEv, symObjAddr: 0x210, symBinAddr: 0x100003D10, symSize: 0x38 }
+  - { offsetInCU: 0x26, offset: 0x45A5, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x0, symBinAddr: 0x100003D48, symSize: 0x130 }
+  - { offsetInCU: 0x3F, offset: 0x45BE, size: 0x8, addend: 0x0, symName: _game, symObjAddr: 0x8D88, symBinAddr: 0x100008048, symSize: 0x0 }
+  - { offsetInCU: 0x2BF6, offset: 0x7175, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x0, symBinAddr: 0x100003D48, symSize: 0x130 }
+  - { offsetInCU: 0x2C64, offset: 0x71E3, size: 0x8, addend: 0x0, symName: __ZN4Game7runningEv, symObjAddr: 0x130, symBinAddr: 0x100003E78, symSize: 0x20 }
+...
