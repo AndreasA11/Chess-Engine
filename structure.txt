@@ -1,0 +1,12 @@
+
+The overall structure of files in this projcet
+
+                      main
+                       /
+            magic     /  
+              \      /  
+               \    /    
+               bitboard    
+                /  
+               /    
+        magicNumbers

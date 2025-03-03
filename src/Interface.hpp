@@ -9,7 +9,7 @@ class Interface
 public:
 
 	void init(const char* title, int width, int height, bool fullscreen);
-
+	
 	void handleEvents();
 	bool running() { return isRunning; }
 	void render();
