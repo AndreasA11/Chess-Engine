@@ -51,8 +51,6 @@ const std::string tileToCoord[64] = {
     "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
 };
 
-//ASCII pieces
-const std::string asciiPieces = "PNBRQKpnbrqk";
 //unicode pieces
 const std::string unicodePieces[12] = {"♙", "♘", "♗", "♖", "♕", "♔", "♟", "♞", "♝", "♜", "♛", "♚"};
 //convert ASCII character pieces to encoded constants
@@ -127,17 +125,21 @@ struct BitBoard {
     uint64_t rookAttacks[64][4096]; //lookup table for rooks
     
     //bitboard functions
-    uint64_t maskPawnAttacks(int tile, Color colorIn);
-    uint64_t maskKnightAttacks(int tile);
-    uint64_t maskKingAttacks(int tile);
+    uint64_t maskPawnAttacks(int tile, Color colorIn); //pawn attacks on a given tile and color
+    uint64_t maskKnightAttacks(int tile); //knight attacks on a given tile
+    uint64_t maskKingAttacks(int tile); //king attacks on a given tile
+    
+    //helpers for get sliding piece attacks
     uint64_t maskBishopAttacks(int tile);
     uint64_t maskRookAttacks(int tile);
     uint64_t BishopOnFly(int tile, uint64_t block);
     uint64_t RookOnFly(int tile, uint64_t block);
 
-    void initLeaperAttacks();
-    void initSliderAttacks(RB pieceIn);
+    //is current square attacked by the current given side
+    bool isTileAttacked(int tile, int side);
 
+    //get sliding pieces attacks
+    //get bishop attacks
     inline uint64_t getBishopAttacks(int tile, uint64_t occupancy) {
         //get bishop attacks
         occupancy &= bishopMasks[tile];
@@ -145,7 +147,7 @@ struct BitBoard {
         occupancy >>= 64 - bishopRelevantBits[tile];
         return bishopAttacks[tile][occupancy];
     }
-
+    //get rook attacks
     inline uint64_t getRookAttacks(int tile, uint64_t occupancy) {
         //get rook attacks
         occupancy &= rookMasks[tile];
@@ -153,13 +155,31 @@ struct BitBoard {
         occupancy >>= 64 - rookRelevantBits[tile];
         return rookAttacks[tile][occupancy];
     }
-    
+    //getQueenAttacks
     inline uint64_t getQueenAttacks(int tile, uint64_t occupancy) {
         uint64_t queenAttacks = ZERO;
         queenAttacks |= getBishopAttacks(tile, occupancy);
         queenAttacks |= getRookAttacks(tile, occupancy);
         return queenAttacks;
     }
+    
+
+    //init attacks
+    void initLeaperAttacks();
+    void initSliderAttacks(RB pieceIn);
+
+    //generate all moves
+    void generateMoves();
+
+    //generate all moves helper functions
+    void bitPawnMoves(int piece, uint64_t bitboard, int sourceTile, int targetTile, uint64_t attacks);
+    void bitCastling(int piece);
+    void bitKnightMoves(int piece, uint64_t bitboard, int sourceTile, int targetTile, uint64_t attacks);
+    void bitBishopMoves(int piece, uint64_t bitboard, int sourceTile, int targetTile, uint64_t attacks);
+    void bitRookMoves(int piece, uint64_t bitboard, int sourceTile, int targetTile, uint64_t attacks);
+    void bitQueenMoves(int piece, uint64_t bitboard, int sourceTile, int targetTile, uint64_t attacks);
+    void bitKingMoves(int piece, uint64_t bitboard, int sourceTile, int targetTile, uint64_t attacks);
+    
     //helper functions
     void printBitBoard(uint64_t bitBoardIn);
 
@@ -189,8 +209,7 @@ struct BitBoard {
     uint64_t setOccupancy(int index, int bitsInMask, uint64_t attackMask);
     
     void printBoard();
-
-    //input/output
+    void printAttackedSquares(int side);
     //parse FEN 
     void parseFEN(std::string fen);
         
