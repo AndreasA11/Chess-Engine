@@ -1,4 +1,5 @@
 #include "magic.hpp"
+#include "bitboard.hpp"
 
 uint32_t Magic::genRandomUINT32() {
 	std::random_device rd;
@@ -21,7 +22,7 @@ uint64_t Magic::genMagicNumber() {
     return (genRandomUINT64() & genRandomUINT64() & genRandomUINT64());
 }
 
-uint64_t Magic::findMagicNumber(int tile, int relevantBits, RB pieceIn) {
+uint64_t Magic::findMagicNumber(int tile, int relevantBits, int pieceIn) {
     uint64_t occupancies[4096];
     uint64_t attacks[4096];
     //used attacks
@@ -29,19 +30,19 @@ uint64_t Magic::findMagicNumber(int tile, int relevantBits, RB pieceIn) {
     //attack mask
     uint64_t attackMask;
     if(pieceIn == bishop) {
-        attackMask = MagicBitboard.maskBishopAttacks(tile);
+        attackMask = BitBoard::maskBishopAttacks(tile);
     } else {
-        attackMask = MagicBitboard.maskRookAttacks(tile); 
+        attackMask = BitBoard::maskRookAttacks(tile); 
     }
     
     int occupancyIndices = 1 << relevantBits;
     for(int i = 0; i < occupancyIndices; ++i) {
-        occupancies[i] = MagicBitboard.setOccupancy(i, relevantBits, attackMask);
+        occupancies[i] = BitBoard::setOccupancy(i, relevantBits, attackMask);
         //init attacks
         if(pieceIn == bishop) {
-            attacks[i] = MagicBitboard.BishopOnFly(tile, occupancies[i]);
+            attacks[i] = BitBoard::BishopOnFly(tile, occupancies[i]);
         } else {
-            attacks[i] = MagicBitboard.RookOnFly(tile, occupancies[i]);
+            attacks[i] = BitBoard::RookOnFly(tile, occupancies[i]);
         }
     }
 
@@ -51,7 +52,7 @@ uint64_t Magic::findMagicNumber(int tile, int relevantBits, RB pieceIn) {
         //gen magic number candidate
         uint64_t magicNumber = genMagicNumber();
         //skip bad numbers
-        if(MagicBitboard.countBitsOn((attackMask * magicNumber) & 0xFF00000000000000) < 6) {
+        if(BitBoard::countBitsOn((attackMask * magicNumber) & 0xFF00000000000000) < 6) {
             continue;
         }
         //init used attack array
@@ -81,7 +82,7 @@ void Magic::initMagicNumbers() {
     std::cout << "Rook magic numbers\n";
     for(int tile = 0; tile < 64; ++tile) {
         //rook magic numbers
-        rookMagic[tile] = findMagicNumber(tile, MagicBitboard.rookRelevantBits[tile], rook);
+        rookMagic[tile] = findMagicNumber(tile, BitBoard::rookRelevantBits[tile], rook);
         std::cout << "0x" << std::hex << rookMagic[tile] << "\n";
         
     }
@@ -90,7 +91,7 @@ void Magic::initMagicNumbers() {
 
     for(int tile = 0; tile < 64; ++tile) {
         //bishop magic numbers
-        bishopMagic[tile] = findMagicNumber(tile, MagicBitboard.bishopRelevantBits[tile], bishop);
+        bishopMagic[tile] = findMagicNumber(tile, BitBoard::bishopRelevantBits[tile], bishop);
         std::cout << "0x" << std::hex << bishopMagic[tile] << "\n";
         
     }

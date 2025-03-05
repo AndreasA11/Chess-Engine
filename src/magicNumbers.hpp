@@ -7,6 +7,7 @@
     used for bitboard struct
     derived from magic struct    
 */
+
 struct MagicNumbers{
     //magic numbers for bishop
     uint64_t bishopMagicNumbers[64] = {

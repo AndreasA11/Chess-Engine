@@ -130,12 +130,12 @@ uint64_t BitBoard::maskKingAttacks(int tile) {
     return attacks;
 }
 
-void BitBoard::initLeaperAttacks() {//magic numbers for bishop
+void BitBoard::initLeaperAttacks() {
     for(int tile = 0; tile < 64; ++tile) {
-        pawnAttack[White][tile] = maskPawnAttacks(tile, White);
-        pawnAttack[Black][tile] = maskPawnAttacks(tile, Black);
-        knightAttack[tile] = maskKnightAttacks(tile);
-        kingAttack[tile] = maskKingAttacks(tile);
+        bbState.pawnAttack[White][tile] = maskPawnAttacks(tile, White);
+        bbState.pawnAttack[Black][tile] = maskPawnAttacks(tile, Black);
+        bbState.knightAttack[tile] = maskKnightAttacks(tile);
+        bbState.kingAttack[tile] = maskKingAttacks(tile);
     }
 }
 
@@ -260,13 +260,13 @@ uint64_t BitBoard::RookOnFly(int tile, uint64_t block) {
 
 void BitBoard::initSliderAttacks(RB pieceIn) {
     for(int tile = 0; tile < 64; ++tile) {
-        bishopMasks[tile] = maskBishopAttacks(tile);
-        rookMasks[tile] = maskRookAttacks(tile);
+        bbState.bishopMasks[tile] = maskBishopAttacks(tile);
+        bbState.rookMasks[tile] = maskRookAttacks(tile);
         uint64_t attackMask;
         if(pieceIn == bishop) {
-            attackMask = bishopMasks[tile];
+            attackMask = bbState.bishopMasks[tile];
         } else {
-            attackMask = rookMasks[tile];
+            attackMask = bbState.rookMasks[tile];
         }
         
 
@@ -281,7 +281,7 @@ void BitBoard::initSliderAttacks(RB pieceIn) {
                 int magicIndex = (occupancy * m.bishopMagicNumbers[tile]) >> (64 - bishopRelevantBits[tile]);
 
                 //init bishop attacks
-                bishopAttacks[tile][magicIndex] = BishopOnFly(tile, occupancy);
+                bbState.bishopAttacks[tile][magicIndex] = BishopOnFly(tile, occupancy);
             } else {//rook
                 //init current occupancy variation
                 uint64_t occupancy = setOccupancy(i, relevantBits, attackMask);
@@ -289,7 +289,7 @@ void BitBoard::initSliderAttacks(RB pieceIn) {
                 int magicIndex = (occupancy * m.rookMagicNumbers[tile]) >> (64 - rookRelevantBits[tile]);
 
                 //init rook attacks
-                rookAttacks[tile][magicIndex] = RookOnFly(tile, occupancy);
+                bbState.rookAttacks[tile][magicIndex] = RookOnFly(tile, occupancy);
             }
         }
     }
@@ -308,7 +308,7 @@ void BitBoard::printBoard() {
             //loop over all piece bitboards
             for(int bbPiece = P; bbPiece <= k; ++bbPiece) {
                 //if there is a piece on current tile the we get the piece code
-                if(getBit(pieceBitboards[bbPiece], tile)) {
+                if(getBit(bbState.pieceBitboards[bbPiece], tile)) {
                     piece = bbPiece;
                 }
             }
@@ -325,35 +325,35 @@ void BitBoard::printBoard() {
     std::cout << "\n   a b c d e f g h\n";
     std::cout << "--------------------\n\n";
 
-    if(side == White) {
+    if(bbState.side == White) {
         std::cout << "side to move: " << "white\n";
     } else {
         std::cout << "side to move: " << "black\n";
     }
 
-    if(enpassant != noTile) {
-        std::cout << "En passant: " << tileToCoord[enpassant] << "\n";
+    if(bbState.enpassant != noTile) {
+        std::cout << "En passant: " << tileToCoord[bbState.enpassant] << "\n";
     } else {
         std::cout << "En passant: " <<  "no\n\n";
     }
 
     std::cout << "Castling: ";
-    if(canCastle & WKCA) {
+    if(bbState.canCastle & WKCA) {
         std::cout<< "wK";
     } else {
         std::cout << '-';
     }
-    if(canCastle & WQCA) {
+    if(bbState.canCastle & WQCA) {
         std::cout << "wQ";
     } else {
         std::cout <<  "-";
     }
-    if(canCastle & BKCA) {
+    if(bbState.canCastle & BKCA) {
         std::cout << "bK";
     } else {
         std::cout << "-";
     }
-    if(canCastle & BQCA) {
+    if(bbState.canCastle & BQCA) {
         std::cout << "bQ";
     } else {
         std::cout << '-';
@@ -366,11 +366,11 @@ void BitBoard::printBoard() {
 }
 
 void BitBoard::parseFEN(std::string fen) {
-    memset(pieceBitboards, ZERO, sizeof(pieceBitboards));
-    memset(occupancies, ZERO, sizeof(occupancies));
-    side = White;
-    enpassant = noTile;
-    canCastle = 0;
+    memset(bbState.pieceBitboards, ZERO, sizeof(bbState.pieceBitboards));
+    memset(bbState.occupancies, ZERO, sizeof(bbState.occupancies));
+    bbState.side = White;
+    bbState.enpassant = noTile;
+    bbState.canCastle = 0;
     int count = 0;
     for(int rank = 0; rank < 8; ++rank) {
         for(int file = 0; file < 8; ++file) {
@@ -380,7 +380,7 @@ void BitBoard::parseFEN(std::string fen) {
                 //init piece type
                 int out = fen[count];
                 int piece = charPieces[out];
-                setBitOn(pieceBitboards[piece], tile);
+                setBitOn(bbState.pieceBitboards[piece], tile);
                 ++count;
             } 
             //empty tiles
@@ -389,7 +389,7 @@ void BitBoard::parseFEN(std::string fen) {
                 int piece = -1;
                 for(int bbPiece = P; bbPiece <= k; ++bbPiece) {
                     //if there is a piece on current tile the we get the piece code
-                    if(getBit(pieceBitboards[bbPiece], tile)) {
+                    if(getBit(bbState.pieceBitboards[bbPiece], tile)) {
                         piece = bbPiece;
                     }
                 }
@@ -411,25 +411,25 @@ void BitBoard::parseFEN(std::string fen) {
     ++count;
     //parse side to move
     if(fen[count] == 'w') {
-        side = White;
+        bbState.side = White;
     } else {
-        side = Black;
+        bbState.side = Black;
     }
     count += 2;
     //parse castling
     while(fen[count] != ' ') {
         switch(fen[count]) {
             case 'K':
-                canCastle |= WKCA;
+                bbState.canCastle |= WKCA;
                 break;
             case 'Q':
-                canCastle |= WQCA;
+                bbState.canCastle |= WQCA;
                 break;
             case 'k':
-                canCastle |= BKCA;
+                bbState.canCastle |= BKCA;
                 break;
             case 'q':
-                canCastle |= BQCA;
+                bbState.canCastle |= BQCA;
                 break;
             case '-':
                 break;
@@ -442,48 +442,48 @@ void BitBoard::parseFEN(std::string fen) {
         //parse enpassant file and rank
         int file = fen[count] - 'a';
         int rank = 8 - (fen[count + 1] - '0');
-        enpassant = rank * 8 + file;
+        bbState.enpassant = rank * 8 + file;
     } else { //no enpassant
-        enpassant = noTile;
+        bbState.enpassant = noTile;
     }
     //loop over white pieces bitboards
     for(int piece = P; piece <= K; ++piece) {
-        occupancies[White] |= pieceBitboards[piece];
+        bbState.occupancies[White] |= bbState.pieceBitboards[piece];
     }
     for(int piece = p; piece <= k; ++piece) {
-        occupancies[Black] |= pieceBitboards[piece];
+        bbState.occupancies[Black] |= bbState.pieceBitboards[piece];
     }
-    occupancies[Both] |= (occupancies[White] | occupancies[Black]);
+    bbState.occupancies[Both] |= (bbState.occupancies[White] | bbState.occupancies[Black]);
     std::cout << "fen: " << fen << "\n";
 }
 
 bool BitBoard::isTileAttacked(int tile, int side) {
     //if attacked by white pawns
-    if((side == White) && (pawnAttack[Black][tile] & pieceBitboards[P])) {
+    if((side == White) && (bbState.pawnAttack[Black][tile] & bbState.pieceBitboards[P])) {
         return true;
     }
     //if attack by black pawn
-    if((side == Black) && (pawnAttack[White][tile] & pieceBitboards[p])) {
+    if((side == Black) && (bbState.pawnAttack[White][tile] & bbState.pieceBitboards[p])) {
         return true;
     }
     //attacked by knight
-    if(knightAttack[tile] & ((side == White) ? pieceBitboards[N] : pieceBitboards[n])) {
+    if(bbState.knightAttack[tile] & ((side == White) ? bbState.pieceBitboards[N] : bbState.pieceBitboards[n])) {
         return true;
     }
     //attacked by bishop
-    if(getBishopAttacks(tile, occupancies[Both]) & ((side == White) ? pieceBitboards[B] : pieceBitboards[b])) {
+    if(getBishopAttacks(tile, bbState.occupancies[Both]) & ((side == White) ? bbState.pieceBitboards[B] : bbState.pieceBitboards[b])) {
         return true;
     }
     //attacked by rook
-    if(getRookAttacks(tile, occupancies[Both]) & ((side == White) ? pieceBitboards[R] : pieceBitboards[r])) {
+    if(getRookAttacks(tile, bbState.occupancies[Both]) & ((side == White) ? bbState.pieceBitboards[R] : bbState.pieceBitboards[r])) {
         return true;
     }
     //attacked by queen
-    if(getQueenAttacks(tile, occupancies[Both]) & ((side == White) ? pieceBitboards[Q] : pieceBitboards[q])) {
+    if(getQueenAttacks(tile, bbState.occupancies[Both]) & ((side == White) ? bbState.pieceBitboards[Q] : bbState.pieceBitboards[q])) {
         return true;
     }
     //attacked by king
-    if(kingAttack[tile] & ((side == White) ? pieceBitboards[K] : pieceBitboards[k])) {
+    if(bbState.kingAttack[tile] & ((side == White) ? bbState.pieceBitboards[K] : bbState.pieceBitboards[k])) {
         return true;
     }
     return false;
@@ -503,305 +503,5 @@ void BitBoard::printAttackedSquares(int side) {
     std::cout << "     a b c d e f g h\n\n";
 }
 
-void BitBoard::generateMoves() {
-    int sourceTile = 0;
-    int targetTile = 0;
-    //define current piece bitboard copy and attacks
-    uint64_t bitboard = ZERO;
-    uint64_t attacks = ZERO;
-    for(int piece = P; piece <= k; ++piece) {
-        bitboard = pieceBitboards[piece];
-        //white pawn moves, white king castle moves
-        if(side == White) {
-            //white pawn moves 
-            bitPawnMoves(piece, bitboard, sourceTile, targetTile, attacks);
-            //white castling moves
-            bitCastling(piece);
-        } else { //black pawn moves, black king castle moves
-            //black pawn moves
-            bitPawnMoves(piece, bitboard, sourceTile, targetTile, attacks);
-            //black castling moves
-            bitCastling(piece);
-        }
-        //knight moves
-        bitKnightMoves(piece, bitboard, sourceTile, targetTile, attacks);
-        //bishop moves
-        bitBishopMoves(piece, bitboard, sourceTile, targetTile, attacks);
-        //rook moves
-        bitRookMoves(piece, bitboard, sourceTile, targetTile, attacks);
-        //queen moves
-        bitQueenMoves(piece, bitboard, sourceTile, targetTile, attacks);
-        //king moves (non castle)
-        bitKingMoves(piece, bitboard, sourceTile, targetTile, attacks);
-    }
-}
+BitBoard::BitBoardState BitBoard::bbState = BitBoard::BitBoardState();  
 
-void BitBoard::bitPawnMoves(int piece, uint64_t bitboard, int sourceTile, int targetTile, uint64_t attacks) {
-    if(piece == P && side == White) {
-        //loop over white pawns in white pawn bitboard
-        while(bitboard) {
-            sourceTile = getLSHBIndex(bitboard);
-            targetTile = sourceTile - 8;
-            //generate quiet pawn moves
-            if(!(targetTile < a8) && !getBit(occupancies[Both], targetTile)) {
-                //pawn promo
-                if(sourceTile >= a7 && sourceTile <= h7) {
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn promotion: Q\n" ;
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn promotion: B\n" ;
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn promotion: B\n" ;
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn promotion: N\n" ;
-                } else { //pawn pushes
-                    // one square pawn push
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn push\n";
-                    //two square pawn push
-                    if((sourceTile >= a2 && sourceTile <= h2) && !getBit(occupancies[Both], (targetTile - 8))) {
-                        std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile - 8] << "   double pawn push\n";
-                    }
-                }
-            }
-            //init white pawn attacks bitboard
-            attacks = pawnAttack[side][sourceTile] & occupancies[Black];
-            while(attacks) {
-                targetTile = getLSHBIndex(attacks);
-                if(sourceTile >= a7 && sourceTile <= h7) {
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn capture promotion: Q\n";
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn capture promotion: R\n";
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn capture promotion: B\n";
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn capture promotion: N\n";
-                } else { //pawn pushes
-                    // one square pawn push
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn capture\n";
-                }
-                popBit(attacks, targetTile);
-            }
-            //generate enpassant captures
-            if(enpassant != noTile) {
-                uint64_t enpassantAttacks = pawnAttack[side][sourceTile] & (ONE << enpassant);
-                //check if enpassant capture is available
-                if(enpassantAttacks) {
-                    int enpassantTargetTile = getLSHBIndex(enpassantAttacks);
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[enpassantTargetTile] << "   pawn en passant capture\n" ;
-                }
-            }
-            //pop LSHB from bitboard
-            popBit(bitboard, sourceTile);
-        }
-    } else if(piece == p && side == Black) {
-        //loop over black pawns in black pawn bitboard
-        while(bitboard) {
-            sourceTile = getLSHBIndex(bitboard);
-            targetTile = sourceTile + 8;
-            //generate quiet pawn moves
-            if(!(targetTile > h1) && !getBit(occupancies[Both], targetTile)) {
-                //pawn promo
-                if(sourceTile >= a2 && sourceTile <= h2) {
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn promotion: q\n";
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn promotion: r\n";
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn promotion: b\n";
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn promotion: n\n";
-                } else { //pawn pushes
-                    // one square pawn push
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn push:\n";
-                    //two square pawn push
-                    if((sourceTile >= a7 && sourceTile <= h7) && !getBit(occupancies[Both], (targetTile + 8))) {
-                        std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile + 8] << "   double pawn push\n";
-                    }
-                }
-            }
-            //init black pawn attacks bitboard
-            attacks = pawnAttack[side][sourceTile] & occupancies[White];
-            while(attacks) {
-                targetTile = getLSHBIndex(attacks);
-                if(sourceTile >= a2 && sourceTile <= h2) {
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn capture promotion: q\n";
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn capture promotion: r\n";
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn capture promotion: b\n";
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn capture promotion: n\n";
-                } else { //pawn pushes
-                    // one square pawn push
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn capture\n";
-                }
-                popBit(attacks, targetTile);
-            }
-            //generate enpassant captures
-            if(enpassant != noTile) {
-                uint64_t enpassantAttacks = pawnAttack[side][sourceTile] & (ONE << enpassant);
-                //check if enpassant capture is available
-                if(enpassantAttacks) {
-                    int enpassantTargetTile = getLSHBIndex(enpassantAttacks);
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[enpassantTargetTile] << "   pawn en passant capture\n";
-                }
-            }
-            //pop LSHB from bitboard
-            popBit(bitboard, sourceTile);
-        }
-    }
-}
-
-void BitBoard::bitCastling(int piece) {
-    if(piece == K && side == White) {
-        //king side castling
-        if(canCastle & WKCA) {
-            //make sure squares between king and king side rook are free
-            if(!getBit(occupancies[Both], f1) && !getBit(occupancies[Both], g1)) {
-                //make sure king and the f1 tile are not targeted by enemy pieces 
-                if(!isTileAttacked(e1, Black) && !isTileAttacked(f1, Black)) {
-                    std::cout << "e1->g1" << "   castling move\n";
-                }
-            }
-        } //canCastle 
-        //queen side castling
-        if(canCastle & WQCA) {
-            //make sure squares between king and queen side rook are free
-            if(!getBit(occupancies[Both], d1) && !getBit(occupancies[Both], c1) && !getBit(occupancies[Both], b1)) {
-                //make sure king and the d1 tile are not targeted by enemy pieces 
-                if(!isTileAttacked(e1, Black) && !isTileAttacked(d1, Black)) {
-                    std::cout << "e1->c1" << "   castling move\n";
-                }
-            }
-        }
-    } else {
-        if(piece == k && side == Black) {
-            //king side castling
-            if(canCastle & BKCA) {
-                //make sure squares between king and king side rook are free
-                if(!getBit(occupancies[Both], f8) && !getBit(occupancies[Both], g8)) {
-                    //make sure king and the f8 tile are not targeted by enemy pieces 
-                    if(!isTileAttacked(e8, White) && !isTileAttacked(f8, White)) {
-                        std::cout << "e8->g8" << "   castling move\n";
-                    }
-                }
-            }
-            //queen side castling
-            if(canCastle & BQCA) {
-                //make sure squares between king and queen side rook are free
-                if(!getBit(occupancies[Both], d8) && !getBit(occupancies[Both], c8) && !getBit(occupancies[Both], b8)) {
-                    //make sure king and the d8 tile are not targeted by enemy pieces 
-                    if(!isTileAttacked(e8, White) && !isTileAttacked(d8, White)) {
-                        std::cout << "e8->c8" << "   castling move\n";
-                    }
-                }
-            }
-        }
-    }
-}
-
-void BitBoard::bitKnightMoves(int piece, uint64_t bitboard, int sourceTile, int targetTile, uint64_t attacks) {
-    if((side == White) ? piece == N : piece == n) {
-        //loop over source tiles of piece bitboard copy
-        while(bitboard) {
-            sourceTile = getLSHBIndex(bitboard);
-            //init piece attacks in order to get set of target squares, make sure not to attack same colored pieces
-            attacks = knightAttack[sourceTile] & ((side == White) ? ~occupancies[White] : ~occupancies[Black]);
-            while(attacks) { //loop over tiles in attacks
-                targetTile = getLSHBIndex(attacks);
-                //quiet moves
-                if(!getBit(((side == White) ? occupancies[Black] : occupancies[White]), targetTile)) {
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   quiet move\n";
-                } else {
-                    //capture moves
-                std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   piece capture\n";
-                }
-                popBit(attacks, targetTile);
-            }
-            //pop LSHB
-            popBit(bitboard, sourceTile);
-        }
-    }
-}
-
-void BitBoard::bitBishopMoves(int piece, uint64_t bitboard, int sourceTile, int targetTile, uint64_t attacks) {
-    if((side == White) ? piece == B : piece == b) {
-        //loop over source tiles of piece bitboard copy
-        while(bitboard) {
-            sourceTile = getLSHBIndex(bitboard);
-            //init piece attacks in order to get set of target squares, make sure not to attack same colored pieces
-            attacks = getBishopAttacks(sourceTile, occupancies[Both]) & ((side == White) ? ~occupancies[White] : ~occupancies[Black]);
-            while(attacks) { //loop over tiles in attacks
-                targetTile = getLSHBIndex(attacks);
-                //quiet moves
-                if(!getBit(((side == White) ? occupancies[Black] : occupancies[White]), targetTile)) {
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   quiet move\n";
-                } else {
-                    //capture moves
-                std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   piece capture\n";
-                }
-                popBit(attacks, targetTile);
-            }
-            //pop LSHB
-            popBit(bitboard, sourceTile);
-        }
-    }
-}
-
-void BitBoard::bitRookMoves(int piece, uint64_t bitboard, int sourceTile, int targetTile, uint64_t attacks) {
-    if((side == White) ? piece == R : piece == r) {
-        //loop over source tiles of piece bitboard copy
-        while(bitboard) {
-            sourceTile = getLSHBIndex(bitboard);
-            //init piece attacks in order to get set of target squares, make sure not to attack same colored pieces
-            attacks = getRookAttacks(sourceTile, occupancies[Both]) & ((side == White) ? ~occupancies[White] : ~occupancies[Black]);
-            while(attacks) { //loop over tiles in attacks
-                targetTile = getLSHBIndex(attacks);
-                //quiet moves
-                if(!getBit(((side == White) ? occupancies[Black] : occupancies[White]), targetTile)) {
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   quiet move\n";
-                } else {
-                    //capture moves
-                std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   piece capture\n";
-                }
-                popBit(attacks, targetTile);
-            }
-            //pop LSHB
-            popBit(bitboard, sourceTile);
-        }
-    }
-}
-
-void BitBoard::bitQueenMoves(int piece, uint64_t bitboard, int sourceTile, int targetTile, uint64_t attacks) {
-    if((side == White) ? piece == Q : piece == q) {
-        //loop over source tiles of piece bitboard copy
-        while(bitboard) {
-            sourceTile = getLSHBIndex(bitboard);
-            //init piece attacks in order to get set of target squares, make sure not to attack same colored pieces
-            attacks = getQueenAttacks(sourceTile, occupancies[Both]) & ((side == White) ? ~occupancies[White] : ~occupancies[Black]);
-            while(attacks) { //loop over tiles in attacks
-                targetTile = getLSHBIndex(attacks);
-                //quiet moves
-                if(!getBit(((side == White) ? occupancies[Black] : occupancies[White]), targetTile)) {
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   quiet move\n";
-                } else {
-                    //capture moves
-                std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   piece capture\n";
-                }
-                popBit(attacks, targetTile);
-            }
-            //pop LSHB
-            popBit(bitboard, sourceTile);
-        }
-    }
-}
-
-void BitBoard::bitKingMoves(int piece, uint64_t bitboard, int sourceTile, int targetTile, uint64_t attacks) {
-    if((side == White) ? piece == K : piece == k) {
-        //loop over source tiles of piece bitboard copy
-        while(bitboard) {
-            sourceTile = getLSHBIndex(bitboard);
-            //init piece attacks in order to get set of target squares, make sure not to attack same colored pieces
-            attacks = kingAttack[sourceTile] & ((side == White) ? ~occupancies[White] : ~occupancies[Black]);
-            while(attacks) { //loop over tiles in attacks
-                targetTile = getLSHBIndex(attacks);
-                //quiet moves
-                if(!getBit(((side == White) ? occupancies[Black] : occupancies[White]), targetTile)) {
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   quiet move\n";
-                } else {
-                    //capture moves
-                std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   piece capture\n";
-                }
-                popBit(attacks, targetTile);
-            }
-            //pop LSHB
-            popBit(bitboard, sourceTile);
-        }
-    }
-}

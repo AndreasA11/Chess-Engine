@@ -13,6 +13,28 @@ const uint64_t ONE = 1;
 #define getBit(bitBoardIn, tile) ((bitBoardIn) & (ONE << tile))
 #define popBit(bitBoardIn, tile) ((bitBoardIn) &= ~(ONE << tile))
 
+//binary move bits
+    /*
+        sourceTile: 0x3f
+        targetTile: 0xfc0
+        piece: 0xf000
+        promoted piece: 0xf0000
+        capture: 0x100000
+        double push: 0x200000
+        en passant: 0x400000
+        castling: 0x800000
+    */
+
+#define encodeMove(source, target, piece, promo, cap, doub, enpass, castling) (source) | (target << 6) | (piece << 12) | (promo << 16) | (cap << 20) | (doub << 21)| (enpass << 22) | (castling << 23)
+#define getMoveSource(move) (move & 0x3f) //extract source tile
+#define getMoveTarget(move) ((move & 0xfc0) >> 6) //extract target tile
+#define getMovePiece(move) ((move & 0xf000) >> 12) //see what piece is moving
+#define getMovePromo(move) ((move & 0xf0000) >> 16) //see what piece(if any) is promoted
+#define getMoveCapture(move) (move & 0x100000) //see if capture flag is on or not
+#define getDoublePPush(move) (move & 0x200000)
+#define getEnPassant(move) (move & 0x400000)
+#define getCastling(move) (move & 0x800000)
+
 enum Color {
     White, Black, Both
 };
@@ -69,17 +91,12 @@ const int charPieces[115] = {
     ['k'] = k
 };
 
-struct BitBoard {
+namespace BitBoard {
     //consts for files
     const uint64_t notAfile = 18374403900871474942ULL; // the entire A file is 0's the rest is 1's
     const uint64_t notHfile = 9187201950435737471ULL; // the entire H file is 0's the rest is 1's
     const uint64_t notHGfile = 4557430888798830399ULL; // the entire A and B file is 0's the rest is 1's
     const uint64_t notABfile = 18229723555195321596ULL; // the entire H and G file is 0's the rest is 1's
-    
-    //bitboard for all 12 pieces
-    uint64_t pieceBitboards[12];
-    //occupancies for white, black, and both colored pieces
-    uint64_t occupancies[3];
     
     //the number of relevant bits (not including edges since they cannot block anything) for masking for rook
     const int rookRelevantBits[64] = {
@@ -106,23 +123,32 @@ struct BitBoard {
     }; 
     
     //side to move
-    int side = White;
-    //en passant
-    int enpassant = noTile;
-    //castling rights
-    int canCastle = 0;
-    
-    //magic numbers for bishop and rook
-    MagicNumbers m;
+    struct BitBoardState {
+        int side = White;
+        //en passant
+        int enpassant = noTile;
+        //castling rights
+        int canCastle = 0;
 
-    //attack tables
-    uint64_t pawnAttack[2][64]; //[color][tile]
-    uint64_t knightAttack[64];
-    uint64_t kingAttack[64]; 
-    uint64_t bishopMasks[64]; //bishop masks
-    uint64_t rookMasks[64]; //rook masks
-    uint64_t bishopAttacks[64][512]; //lookip table for bishops
-    uint64_t rookAttacks[64][4096]; //lookup table for rooks
+        //bitboard for all 12 pieces
+        uint64_t pieceBitboards[12];
+        //occupancies for white, black, and both colored pieces
+        uint64_t occupancies[3];
+
+        //attack tables
+        uint64_t pawnAttack[2][64]; //[color][tile]
+        uint64_t knightAttack[64];
+        uint64_t kingAttack[64]; 
+        uint64_t bishopMasks[64]; //bishop masks
+        uint64_t rookMasks[64]; //rook masks
+        uint64_t bishopAttacks[64][512]; //lookip table for bishops
+        uint64_t rookAttacks[64][4096]; //lookup table for rooks
+    };    
+    
+    //bitboard state
+    extern BitBoardState bbState; 
+    //magic numbers for bishop and rook
+    static MagicNumbers m;
     
     //bitboard functions
     uint64_t maskPawnAttacks(int tile, Color colorIn); //pawn attacks on a given tile and color
@@ -135,28 +161,25 @@ struct BitBoard {
     uint64_t BishopOnFly(int tile, uint64_t block);
     uint64_t RookOnFly(int tile, uint64_t block);
 
-    //is current square attacked by the current given side
-    bool isTileAttacked(int tile, int side);
-
     //get sliding pieces attacks
     //get bishop attacks
-    inline uint64_t getBishopAttacks(int tile, uint64_t occupancy) {
+    static inline uint64_t getBishopAttacks(int tile, uint64_t occupancy) {
         //get bishop attacks
-        occupancy &= bishopMasks[tile];
+        occupancy &= bbState.bishopMasks[tile];
         occupancy *= m.bishopMagicNumbers[tile];
         occupancy >>= 64 - bishopRelevantBits[tile];
-        return bishopAttacks[tile][occupancy];
+        return bbState.bishopAttacks[tile][occupancy];
     }
     //get rook attacks
-    inline uint64_t getRookAttacks(int tile, uint64_t occupancy) {
+    static inline uint64_t getRookAttacks(int tile, uint64_t occupancy) {
         //get rook attacks
-        occupancy &= rookMasks[tile];
+        occupancy &= bbState.rookMasks[tile];
         occupancy *= m.rookMagicNumbers[tile];
         occupancy >>= 64 - rookRelevantBits[tile];
-        return rookAttacks[tile][occupancy];
+        return bbState.rookAttacks[tile][occupancy];
     }
     //getQueenAttacks
-    inline uint64_t getQueenAttacks(int tile, uint64_t occupancy) {
+    static inline uint64_t getQueenAttacks(int tile, uint64_t occupancy) {
         uint64_t queenAttacks = ZERO;
         queenAttacks |= getBishopAttacks(tile, occupancy);
         queenAttacks |= getRookAttacks(tile, occupancy);
@@ -165,22 +188,13 @@ struct BitBoard {
     
 
     //init attacks
-    void initLeaperAttacks();
-    void initSliderAttacks(RB pieceIn);
+    void initLeaperAttacks(); //leaper pieces(p, n, k)
+    void initSliderAttacks(RB pieceIn); //sliding pieces(b, r, q)
 
-    //generate all moves
-    void generateMoves();
+    //is current square attacked by the current given side
+    bool isTileAttacked(int tile, int side);
 
-    //generate all moves helper functions
-    void bitPawnMoves(int piece, uint64_t bitboard, int sourceTile, int targetTile, uint64_t attacks);
-    void bitCastling(int piece);
-    void bitKnightMoves(int piece, uint64_t bitboard, int sourceTile, int targetTile, uint64_t attacks);
-    void bitBishopMoves(int piece, uint64_t bitboard, int sourceTile, int targetTile, uint64_t attacks);
-    void bitRookMoves(int piece, uint64_t bitboard, int sourceTile, int targetTile, uint64_t attacks);
-    void bitQueenMoves(int piece, uint64_t bitboard, int sourceTile, int targetTile, uint64_t attacks);
-    void bitKingMoves(int piece, uint64_t bitboard, int sourceTile, int targetTile, uint64_t attacks);
-    
-    //helper functions
+    //print bitboard
     void printBitBoard(uint64_t bitBoardIn);
 
     //count bits within a bitboard
@@ -206,14 +220,20 @@ struct BitBoard {
         }
     }
 
+    //set occupancy bitboard
     uint64_t setOccupancy(int index, int bitsInMask, uint64_t attackMask);
     
+    //print board
     void printBoard();
+    //print all tiles that are attacked
     void printAttackedSquares(int side);
     //parse FEN 
     void parseFEN(std::string fen);
-        
+    
+
+    
 };
+
 
 
 #endif //BITBOARD_H
