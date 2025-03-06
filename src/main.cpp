@@ -30,6 +30,7 @@ std::string cmk_position = "r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1
 ***********************/
 
 
+
 int main(int argc, char *argv[]) {
 	// Interface *interface = nullptr;
 	// interface = new Interface();
@@ -44,16 +45,32 @@ int main(int argc, char *argv[]) {
 	// interface->clean();
 	
 
-	BitBoard::parseFEN("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 ");
+	BitBoard::parseFEN("r3k2r/p1ppRpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R b KQkq - 0 1 ");
 	BitBoard::initLeaperAttacks();
 	BitBoard::initSliderAttacks(bishop);
 	BitBoard::initSliderAttacks(rook);
-
-	BitBoard::printBoard();
 	Movement::generateMoves();
-	Movement::printMoveList();
+
+	for(int count = 0; count < Movement::moveStruct.moveCount; ++count) {
+		int move = Movement::moveStruct.moves[count];
+		BitBoard::copyBitBoard();
+		
+		if(!Movement::makeMove(move, allMoves)) {
+			continue;
+		}
+		//BitBoard::printBitBoard(BitBoard::bbState.occupancies[Black]);
+		BitBoard::printBoard();
+		std::getchar();
+
+		//take back
+		BitBoard::restoreBitBoard();
+		//BitBoard::printBitBoard(BitBoard::bbState.occupancies[Black]);
+		BitBoard::printBoard();
+		std::getchar();
+	}
 	
-	
+
+
 	return 0;
 
 }

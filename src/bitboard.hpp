@@ -8,16 +8,29 @@ namespace BitBoard {
     
     //state of the bitboard, variables that need to be accessed and changed in outside files
     struct BitBoardState {
+        //board state variables
+        //side
         int side = White;
         //en passant
         int enpassant = noTile;
         //castling rights
         int canCastle = 0;
-
         //bitboard for all 12 pieces
         uint64_t pieceBitboards[12];
         //occupancies for white, black, and both colored pieces
         uint64_t occupancies[3];
+
+        //copy for preserving and restoring gamestate
+        //side
+        int sideCopy;
+        //en passant
+        int enpassantCopy;
+        //castling rights
+        int canCastleCopy;
+        //bitboard for all 12 pieces
+        uint64_t pieceBitboardsCopy[12];
+        //occupancies for white, black, and both colored pieces
+        uint64_t occupanciesCopy[3];
 
         //attack tables
         uint64_t pawnAttack[2][64]; //[color][tile]
@@ -113,6 +126,11 @@ namespace BitBoard {
     void printAttackedSquares(int side);
     //parse FEN 
     void parseFEN(std::string fen);
+
+    //copy board
+    void copyBitBoard();
+    //restor board
+    void restoreBitBoard();
     
 };
 

@@ -47,6 +47,8 @@ namespace Movement {
 
     //print move list for debugging purposes (more information than printMove)
     void printMoveList(); 
+
+    int makeMove(int move, int moveFlag);
 };
 
 

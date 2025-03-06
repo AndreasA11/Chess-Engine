@@ -341,22 +341,22 @@ void BitBoard::printBoard() {
 
     std::cout << "Castling: ";
     if(bbState.canCastle & WKCA) {
-        std::cout<< "wK";
+        std::cout<< "K";
     } else {
         std::cout << '-';
     }
     if(bbState.canCastle & WQCA) {
-        std::cout << "wQ";
+        std::cout << "Q";
     } else {
         std::cout <<  "-";
     }
     if(bbState.canCastle & BKCA) {
-        std::cout << "bK";
+        std::cout << "k";
     } else {
         std::cout << "-";
     }
     if(bbState.canCastle & BQCA) {
-        std::cout << "bQ";
+        std::cout << "q";
     } else {
         std::cout << '-';
     }
@@ -503,6 +503,24 @@ void BitBoard::printAttackedSquares(int side) {
         std::cout << "\n";
     }
     std::cout << "     a b c d e f g h\n\n";
+}
+
+void BitBoard::copyBitBoard() {
+	//preserve board state
+	std::copy(std::begin(bbState.pieceBitboards), std::end(bbState.pieceBitboards), std::begin(bbState.pieceBitboardsCopy));
+	std::copy(std::begin(bbState.occupancies), std::end(bbState.occupancies), std::begin(bbState.occupanciesCopy));
+	bbState.sideCopy = bbState.side;
+	bbState.enpassantCopy = bbState.enpassant;
+	bbState.canCastleCopy = bbState.canCastle;
+}
+
+void BitBoard::restoreBitBoard() {
+    //reserving board state
+    std::copy(std::begin(bbState.pieceBitboardsCopy), std::end(bbState.pieceBitboardsCopy), std::begin(BitBoard::bbState.pieceBitboards));
+	std::copy(std::begin(bbState.occupanciesCopy), std::end(bbState.occupanciesCopy), std::begin(BitBoard::bbState.occupancies));
+	BitBoard::bbState.side = bbState.sideCopy;
+	BitBoard::bbState.enpassant = bbState.enpassantCopy;
+	BitBoard::bbState.canCastle = bbState.canCastleCopy;
 }
 
 

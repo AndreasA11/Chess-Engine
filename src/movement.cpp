@@ -137,7 +137,7 @@ void Movement::bitPawnMoves(int piece, uint64_t bitboard, int sourceTile, int ta
                     addMove(encodeMove(sourceTile, targetTile, piece, 0, 0, 0, 0, 0));
                     //two square pawn push
                     if((sourceTile >= a7 && sourceTile <= h7) && !getBit(BitBoard::bbState.occupancies[Both], (targetTile + 8))) {
-                        addMove(encodeMove(sourceTile, (targetTile - 8), piece, 0, 0, 1, 0, 0));
+                        addMove(encodeMove(sourceTile, (targetTile + 8), piece, 0, 0, 1, 0, 0));
                     }
                 }
             }
@@ -340,5 +340,126 @@ void Movement::bitKingMoves(int piece, uint64_t bitboard, int sourceTile, int ta
     }
 }
 
-  
+int Movement::makeMove(int move, int moveFlag) {
+    if(moveFlag == allMoves) {
+        //quiet moves
+        //preserve board state
+        BitBoard::copyBitBoard();
+        //parse move
+        int sourceTile = getMoveSource(move);
+        int targetTile = getMoveTarget(move);
+        int piece = getMovePiece(move);
+        int promoPiece = getMovePromo(move);
+        int capture = getMoveCapture(move);
+        int doublePPush = getDoublePPush(move);
+        int enpass = getEnPassant(move);
+        int castling = getCastling(move);
+
+        //move piece 
+        popBit(BitBoard::bbState.pieceBitboards[piece], sourceTile); //take bit off initial tile
+        setBitOn(BitBoard::bbState.pieceBitboards[piece], targetTile); //put it on the new tile
+
+        //capture moves
+        if(capture) {
+            //pick up bitboard piece index ranges depending on side
+            int startPiece;
+            int endPiece;
+            if(BitBoard::bbState.side == White) { //white to move
+                startPiece = p;
+                endPiece = k;
+            } else { //black to move
+                startPiece = P;
+                endPiece = K;
+            }
+            //loop over opposite colored bitboards
+            for(int bbPiece = startPiece; bbPiece <= endPiece; ++bbPiece) {
+                if(getBit(BitBoard::bbState.pieceBitboards[bbPiece], targetTile)) {
+                    //if piece on target tile we remove from that bitboard
+                    popBit(BitBoard::bbState.pieceBitboards[bbPiece], targetTile);
+                    break;
+                }
+            }
+        }
+        //pawn promotions
+        if(promoPiece) {
+            popBit(BitBoard::bbState.pieceBitboards[(BitBoard::bbState.side == White ? P : p)], sourceTile);
+            setBitOn(BitBoard::bbState.pieceBitboards[promoPiece], targetTile);
+        }
+
+        //en passant capture 
+        if(enpass) {
+            (BitBoard::bbState.side == White) ? popBit(BitBoard::bbState.pieceBitboards[p], (targetTile + 8))
+                                                : popBit(BitBoard::bbState.pieceBitboards[P], (targetTile - 8));
+        }
+        BitBoard::bbState.enpassant = noTile;
+
+        //double pawn push, setting up en passant tile
+        if(doublePPush) {
+            (BitBoard::bbState.side == White ? (BitBoard::bbState.enpassant = targetTile + 8) 
+                                            : (BitBoard::bbState.enpassant = targetTile - 8));
+        }
+
+        //castling moves
+        if(castling) {
+            switch (targetTile) {
+                //WKCA
+                case (g1):
+                    popBit(BitBoard::bbState.pieceBitboards[R], h1);
+                    setBitOn(BitBoard::bbState.pieceBitboards[R], f1);
+                    break;
+                case (c1):
+                    popBit(BitBoard::bbState.pieceBitboards[R], a1);
+                    setBitOn(BitBoard::bbState.pieceBitboards[R], d1);
+                    break;
+                case (g8):
+                    popBit(BitBoard::bbState.pieceBitboards[r], h8);
+                    setBitOn(BitBoard::bbState.pieceBitboards[r], f8);
+                    break;
+                case (c8):
+                    popBit(BitBoard::bbState.pieceBitboards[r], a8);
+                    setBitOn(BitBoard::bbState.pieceBitboards[r], d8);
+                    break;
+                
+            }
+        }
+        //update castling rights
+        BitBoard::bbState.canCastle &= castlingRights[sourceTile];
+        BitBoard::bbState.canCastle &= castlingRights[targetTile];
+
+        //update occupancies
+        BitBoard::bbState.occupancies[White] = ZERO;
+        BitBoard::bbState.occupancies[Black] = ZERO;
+        BitBoard::bbState.occupancies[Both] = ZERO;
+        for(int bbPiece = P; bbPiece <= K; ++bbPiece) {
+            BitBoard::bbState.occupancies[White] |= BitBoard::bbState.pieceBitboards[bbPiece];
+        }
+        for(int bbPiece = p; bbPiece <= k; ++bbPiece) {
+            BitBoard::bbState.occupancies[Black] |= BitBoard::bbState.pieceBitboards[bbPiece];
+        }
+        BitBoard::bbState.occupancies[Both] |= BitBoard::bbState.occupancies[White];
+        BitBoard::bbState.occupancies[Both] |= BitBoard::bbState.occupancies[Black];
+        
+        //change side
+        BitBoard::bbState.side ^= 1;
+
+        //make sure king has not been exposed into a check
+        if(BitBoard::isTileAttacked((BitBoard::bbState.side == White) 
+            ? BitBoard::getLSHBIndex(BitBoard::bbState.pieceBitboards[k]) 
+                : BitBoard::getLSHBIndex(BitBoard::bbState.pieceBitboards[K]), BitBoard::bbState.side)) {
+            BitBoard::restoreBitBoard();
+            return 0;
+        } else {
+            return 1;
+        }
+    } else {
+        //move is capture   
+        if(getMoveCapture(move)) {
+            makeMove(move, allMoves);
+        } else {
+            //move is not a capture, dont make it
+            return 0;
+        }     
+    }
+    return 0;
+}
 

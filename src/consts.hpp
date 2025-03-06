@@ -29,6 +29,10 @@ enum CastlePerm { //bit indications of which types of castling(if any) are avail
     WKCA = 1, WQCA = 2, BKCA = 4, BQCA = 8
 };
 
+enum moveTypes {
+    allMoves, onlyCaptures
+};
+
 enum tiles { //chess board 
     a8, b8, c8, d8, e8, f8, g8, h8,
     a7, b7, c7, d7, e7, f7, g7, h7,
@@ -110,6 +114,18 @@ const int bishopRelevantBits[64] = {
     5, 5, 5, 5, 5, 5, 5, 5,
     6, 5, 5, 5, 5, 5, 5, 6
 }; 
+
+const int castlingRights[64] = {
+    7, 15, 15, 15,  3, 15, 15, 11,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15,
+    13, 15, 15, 15, 12, 15, 15, 14
+};
+
 
 
 /***********************
