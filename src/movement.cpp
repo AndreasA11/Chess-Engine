@@ -1,17 +1,7 @@
 #include "movement.hpp"
 #include "bitboard.hpp"
 
-
-const char promotedPieces[] = {
-    [Q] = 'q',
-    [R] = 'r',
-    [B] = 'b',
-    [N] = 'n',
-    [q] = 'q',
-    [r] = 'r',
-    [b] = 'b',
-    [n] = 'n',
-};
+Moves Movement::moveStruct = Moves();
 
 void Movement::printMove(int move) {
     std::cout << tileToCoord[getMoveSource(move)] 
@@ -21,25 +11,31 @@ void Movement::printMove(int move) {
 
 void Movement::printMoveList() { 
     std::cout << "\n    move   piece  capture   double   enpassant   castling\n\n";
+
+    if(!moveStruct.moveCount) {
+        std::cout << "    No move in move list!\n";
+        return;
+    }
+
     for(int count = 0; count < moveStruct.moveCount; ++count) {
         int move = moveStruct.moves[count];
 
         //print move
         std::cout << "    " << tileToCoord[getMoveSource(move)] 
-            << tileToCoord[getMoveTarget(move)]
-            << promotedPieces[getMovePromo(move)] << "  "
-            << unicodePieces[getMovePiece(move)] << "      "
+            << tileToCoord[getMoveTarget(move)] << "  "
+            << (getMovePromo(move) ? promotedPieces[getMovePromo(move)] : ' ')
+            << unicodePieces[getMovePiece(move)] << "         "
             << (getMoveCapture(move) ? 1 : 0) << "         " 
             << (getDoublePPush(move) ? 1 : 0) << "        "
             << (getEnPassant(move) ? 1 : 0) << "           "
-            << (getCastling(move) ? 1 : 0) << "\n";  
-        
-            std::cout << "\n    Total number of moves: " << moveStruct.moveCount << "\n";
+            << (getCastling(move) ? 1 : 0) << "\n";     
         
     }    
+    std::cout << "\n    Total number of moves: " << moveStruct.moveCount << "\n";
 }
 
 void Movement::generateMoves() {
+    moveStruct.moveCount = 0;
     int sourceTile = 0;
     int targetTile = 0;
     //define current piece bitboard copy and attacks
@@ -82,16 +78,16 @@ void Movement::bitPawnMoves(int piece, uint64_t bitboard, int sourceTile, int ta
             if(!(targetTile < a8) && !getBit(BitBoard::bbState.occupancies[Both], targetTile)) {
                 //pawn promo
                 if(sourceTile >= a7 && sourceTile <= h7) {
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn promotion: Q\n" ;
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn promotion: B\n" ;
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn promotion: B\n" ;
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn promotion: N\n" ;
+                    addMove(encodeMove(sourceTile, targetTile, piece, Q, 0, 0, 0, 0));
+                    addMove(encodeMove(sourceTile, targetTile, piece, R, 0, 0, 0, 0));
+                    addMove(encodeMove(sourceTile, targetTile, piece, B, 0, 0, 0, 0));
+                    addMove(encodeMove(sourceTile, targetTile, piece, N, 0, 0, 0, 0));
                 } else { //pawn pushes
                     // one square pawn push
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn push\n";
-                    //two square pawn push
+                    addMove(encodeMove(sourceTile, targetTile, piece, 0, 0, 0, 0, 0));
                     if((sourceTile >= a2 && sourceTile <= h2) && !getBit(BitBoard::bbState.occupancies[Both], (targetTile - 8))) {
-                        std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile - 8] << "   double pawn push\n";
+                        //two square pawn push
+                        addMove(encodeMove(sourceTile, (targetTile - 8), piece, 0, 0, 1, 0, 0));
                     }
                 }
             }
@@ -100,13 +96,14 @@ void Movement::bitPawnMoves(int piece, uint64_t bitboard, int sourceTile, int ta
             while(attacks) {
                 targetTile = BitBoard::getLSHBIndex(attacks);
                 if(sourceTile >= a7 && sourceTile <= h7) {
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn capture promotion: Q\n";
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn capture promotion: R\n";
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn capture promotion: B\n";
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn capture promotion: N\n";
-                } else { //pawn pushes
-                    // one square pawn push
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn capture\n";
+                    //promotion pawn capture
+                    addMove(encodeMove(sourceTile, targetTile, piece, Q, 1, 0, 0, 0));
+                    addMove(encodeMove(sourceTile, targetTile, piece, R, 1, 0, 0, 0));
+                    addMove(encodeMove(sourceTile, targetTile, piece, B, 1, 0, 0, 0));
+                    addMove(encodeMove(sourceTile, targetTile, piece, N, 1, 0, 0, 0));
+                } else { 
+                    //normal pawn caputre    
+                    addMove(encodeMove(sourceTile, targetTile, piece, 0, 1, 0, 0, 0));
                 }
                 popBit(attacks, targetTile);
             }
@@ -116,7 +113,7 @@ void Movement::bitPawnMoves(int piece, uint64_t bitboard, int sourceTile, int ta
                 //check if enpassant capture is available
                 if(enpassantAttacks) {
                     int enpassantTargetTile = BitBoard::getLSHBIndex(enpassantAttacks);
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[enpassantTargetTile] << "   pawn en passant capture\n" ;
+                    addMove(encodeMove(sourceTile, enpassantTargetTile, piece, 0, 1, 0, 1, 0));
                 }
             }
             //pop LSHB from bitboard
@@ -131,16 +128,16 @@ void Movement::bitPawnMoves(int piece, uint64_t bitboard, int sourceTile, int ta
             if(!(targetTile > h1) && !getBit(BitBoard::bbState.occupancies[Both], targetTile)) {
                 //pawn promo
                 if(sourceTile >= a2 && sourceTile <= h2) {
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn promotion: q\n";
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn promotion: r\n";
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn promotion: b\n";
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn promotion: n\n";
+                    addMove(encodeMove(sourceTile, targetTile, piece, q, 0, 0, 0, 0));
+                    addMove(encodeMove(sourceTile, targetTile, piece, r, 0, 0, 0, 0));
+                    addMove(encodeMove(sourceTile, targetTile, piece, b, 0, 0, 0, 0));
+                    addMove(encodeMove(sourceTile, targetTile, piece, n, 0, 0, 0, 0));
                 } else { //pawn pushes
                     // one square pawn push
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn push:\n";
+                    addMove(encodeMove(sourceTile, targetTile, piece, 0, 0, 0, 0, 0));
                     //two square pawn push
                     if((sourceTile >= a7 && sourceTile <= h7) && !getBit(BitBoard::bbState.occupancies[Both], (targetTile + 8))) {
-                        std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile + 8] << "   double pawn push\n";
+                        addMove(encodeMove(sourceTile, (targetTile - 8), piece, 0, 0, 1, 0, 0));
                     }
                 }
             }
@@ -149,13 +146,14 @@ void Movement::bitPawnMoves(int piece, uint64_t bitboard, int sourceTile, int ta
             while(attacks) {
                 targetTile = BitBoard::getLSHBIndex(attacks);
                 if(sourceTile >= a2 && sourceTile <= h2) {
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn capture promotion: q\n";
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn capture promotion: r\n";
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn capture promotion: b\n";
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn capture promotion: n\n";
-                } else { //pawn pushes
-                    // one square pawn push
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   pawn capture\n";
+                    //promotion pawn capture
+                    addMove(encodeMove(sourceTile, targetTile, piece, q, 1, 0, 0, 0));
+                    addMove(encodeMove(sourceTile, targetTile, piece, r, 1, 0, 0, 0));
+                    addMove(encodeMove(sourceTile, targetTile, piece, b, 1, 0, 0, 0));
+                    addMove(encodeMove(sourceTile, targetTile, piece, n, 1, 0, 0, 0));
+                } else { 
+                    // normal pawn capture 
+                    addMove(encodeMove(sourceTile, targetTile, piece, 0, 1, 0, 0, 0));
                 }
                 popBit(attacks, targetTile);
             }
@@ -165,7 +163,7 @@ void Movement::bitPawnMoves(int piece, uint64_t bitboard, int sourceTile, int ta
                 //check if enpassant capture is available
                 if(enpassantAttacks) {
                     int enpassantTargetTile = BitBoard::getLSHBIndex(enpassantAttacks);
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[enpassantTargetTile] << "   pawn en passant capture\n";
+                    addMove(encodeMove(sourceTile, enpassantTargetTile, piece, 0, 1, 0, 1, 0));
                 }
             }
             //pop LSHB from bitboard
@@ -182,7 +180,7 @@ void Movement::bitCastling(int piece) {
             if(!getBit(BitBoard::bbState.occupancies[Both], f1) && !getBit(BitBoard::bbState.occupancies[Both], g1)) {
                 //make sure king and the f1 tile are not targeted by enemy pieces 
                 if(!BitBoard::isTileAttacked(e1, Black) && !BitBoard::isTileAttacked(f1, Black)) {
-                    std::cout << "e1->g1" << "   castling move\n";
+                    addMove(encodeMove(e1, g1, piece, 0, 0, 0, 0, 1));
                 }
             }
         } //canCastle 
@@ -192,7 +190,7 @@ void Movement::bitCastling(int piece) {
             if(!getBit(BitBoard::bbState.occupancies[Both], d1) && !getBit(BitBoard::bbState.occupancies[Both], c1) && !getBit(BitBoard::bbState.occupancies[Both], b1)) {
                 //make sure king and the d1 tile are not targeted by enemy pieces 
                 if(!BitBoard::isTileAttacked(e1, Black) && !BitBoard::isTileAttacked(d1, Black)) {
-                    std::cout << "e1->c1" << "   castling move\n";
+                    addMove(encodeMove(e1, c1, piece, 0, 0, 0, 0, 1));
                 }
             }
         }
@@ -204,7 +202,7 @@ void Movement::bitCastling(int piece) {
                 if(!getBit(BitBoard::bbState.occupancies[Both], f8) && !getBit(BitBoard::bbState.occupancies[Both], g8)) {
                     //make sure king and the f8 tile are not targeted by enemy pieces 
                     if(!BitBoard::isTileAttacked(e8, White) && !BitBoard::isTileAttacked(f8, White)) {
-                        std::cout << "e8->g8" << "   castling move\n";
+                        addMove(encodeMove(e8, g8, piece, 0, 0, 0, 0, 1));
                     }
                 }
             }
@@ -214,7 +212,7 @@ void Movement::bitCastling(int piece) {
                 if(!getBit(BitBoard::bbState.occupancies[Both], d8) && !getBit(BitBoard::bbState.occupancies[Both], c8) && !getBit(BitBoard::bbState.occupancies[Both], b8)) {
                     //make sure king and the d8 tile are not targeted by enemy pieces 
                     if(!BitBoard::isTileAttacked(e8, White) && !BitBoard::isTileAttacked(d8, White)) {
-                        std::cout << "e8->c8" << "   castling move\n";
+                        addMove(encodeMove(e8, c8, piece, 0, 0, 0, 0, 1));
                     }
                 }
             }
@@ -233,10 +231,10 @@ void Movement::bitKnightMoves(int piece, uint64_t bitboard, int sourceTile, int 
                 targetTile = BitBoard::getLSHBIndex(attacks);
                 //quiet moves
                 if(!getBit(((BitBoard::bbState.side == White) ? BitBoard::bbState.occupancies[Black] : BitBoard::bbState.occupancies[White]), targetTile)) {
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   quiet move\n";
+                    addMove(encodeMove(sourceTile, targetTile, piece, 0, 0, 0, 0, 0));
                 } else {
                     //capture moves
-                std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   piece capture\n";
+                addMove(encodeMove(sourceTile, targetTile, piece, 0, 1, 0, 0, 0));
                 }
                 popBit(attacks, targetTile);
             }
@@ -256,11 +254,11 @@ void Movement::bitBishopMoves(int piece, uint64_t bitboard, int sourceTile, int 
             while(attacks) { //loop over tiles in attacks
                 targetTile = BitBoard::getLSHBIndex(attacks);
                 //quiet moves
-                if(!getBit(((BitBoard::bbState.side == White) ? BitBoard::bbState.occupancies[Black] : BitBoard::bbState.occupancies[White]), targetTile)) {
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   quiet move\n";
+                if(!getBit(((BitBoard::bbState.side == White) ? BitBoard::bbState.occupancies[Black] : BitBoard::bbState.occupancies[White]), targetTile)) {          
+                    addMove(encodeMove(sourceTile, targetTile, piece, 0, 0, 0, 0, 0));
                 } else {
                     //capture moves
-                std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   piece capture\n";
+                    addMove(encodeMove(sourceTile, targetTile, piece, 0, 1, 0, 0, 0));
                 }
                 popBit(attacks, targetTile);
             }
@@ -281,10 +279,10 @@ void Movement::bitRookMoves(int piece, uint64_t bitboard, int sourceTile, int ta
                 targetTile = BitBoard::getLSHBIndex(attacks);
                 //quiet moves
                 if(!getBit(((BitBoard::bbState.side == White) ? BitBoard::bbState.occupancies[Black] : BitBoard::bbState.occupancies[White]), targetTile)) {
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   quiet move\n";
+                    addMove(encodeMove(sourceTile, targetTile, piece, 0, 0, 0, 0, 0));
                 } else {
                     //capture moves
-                std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   piece capture\n";
+                    addMove(encodeMove(sourceTile, targetTile, piece, 0, 1, 0, 0, 0));
                 }
                 popBit(attacks, targetTile);
             }
@@ -305,10 +303,10 @@ void Movement::bitQueenMoves(int piece, uint64_t bitboard, int sourceTile, int t
                 targetTile = BitBoard::getLSHBIndex(attacks);
                 //quiet moves
                 if(!getBit(((BitBoard::bbState.side == White) ? BitBoard::bbState.occupancies[Black] : BitBoard::bbState.occupancies[White]), targetTile)) {
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   quiet move\n";
+                    addMove(encodeMove(sourceTile, targetTile, piece, 0, 0, 0, 0, 0));
                 } else {
                     //capture moves
-                std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   piece capture\n";
+                    addMove(encodeMove(sourceTile, targetTile, piece, 0, 1, 0, 0, 0));
                 }
                 popBit(attacks, targetTile);
             }
@@ -329,10 +327,10 @@ void Movement::bitKingMoves(int piece, uint64_t bitboard, int sourceTile, int ta
                 targetTile = BitBoard::getLSHBIndex(attacks);
                 //quiet moves
                 if(!getBit(((BitBoard::bbState.side == White) ? BitBoard::bbState.occupancies[Black] : BitBoard::bbState.occupancies[White]), targetTile)) {
-                    std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   quiet move\n";
+                    addMove(encodeMove(sourceTile, targetTile, piece, 0, 0, 0, 0, 0));
                 } else {
                     //capture moves
-                std::cout << tileToCoord[sourceTile] << "->" << tileToCoord[targetTile] << "   piece capture\n";
+                    addMove(encodeMove(sourceTile, targetTile, piece, 0, 1, 0, 0, 0));
                 }
                 popBit(attacks, targetTile);
             }
@@ -342,5 +340,5 @@ void Movement::bitKingMoves(int piece, uint64_t bitboard, int sourceTile, int ta
     }
 }
 
-Moves Movement::moveStruct = Moves();  
+  
 

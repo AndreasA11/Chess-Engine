@@ -1,4 +1,6 @@
 #include "bitboard.hpp"
+#include <iostream>
+BitBoard::BitBoardState BitBoard::bbState = BitBoard::BitBoardState();  
 
 void BitBoard::printBitBoard(uint64_t bitBoardIn) {
     uint64_t one = 1;
@@ -503,5 +505,5 @@ void BitBoard::printAttackedSquares(int side) {
     std::cout << "     a b c d e f g h\n\n";
 }
 
-BitBoard::BitBoardState BitBoard::bbState = BitBoard::BitBoardState();  
+
 

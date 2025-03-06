@@ -1,5 +1,6 @@
 #include "magic.hpp"
 #include "bitboard.hpp"
+#include <iostream> 
 
 uint32_t Magic::genRandomUINT32() {
 	std::random_device rd;
@@ -82,7 +83,7 @@ void Magic::initMagicNumbers() {
     std::cout << "Rook magic numbers\n";
     for(int tile = 0; tile < 64; ++tile) {
         //rook magic numbers
-        rookMagic[tile] = findMagicNumber(tile, BitBoard::rookRelevantBits[tile], rook);
+        rookMagic[tile] = findMagicNumber(tile, rookRelevantBits[tile], rook);
         std::cout << "0x" << std::hex << rookMagic[tile] << "\n";
         
     }
@@ -91,7 +92,7 @@ void Magic::initMagicNumbers() {
 
     for(int tile = 0; tile < 64; ++tile) {
         //bishop magic numbers
-        bishopMagic[tile] = findMagicNumber(tile, BitBoard::bishopRelevantBits[tile], bishop);
+        bishopMagic[tile] = findMagicNumber(tile,bishopRelevantBits[tile], bishop);
         std::cout << "0x" << std::hex << bishopMagic[tile] << "\n";
         
     }
