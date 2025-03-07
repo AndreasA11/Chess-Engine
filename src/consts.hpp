@@ -168,6 +168,21 @@ const int castlingRights[64] = {
 #define getEnPassant(move) (move & 0x400000)
 #define getCastling(move) (move & 0x800000)
 
+#define copy_board()                                                      \
+    uint64_t bitboards_copy[12], occupancies_copy[3];                          \
+    int side_copy, enpassant_copy, castle_copy;                           \
+    memcpy(bitboards_copy, BitBoard::bbState.pieceBitboards, 96);                                \
+    memcpy(occupancies_copy, BitBoard::bbState.occupancies, 24);                            \
+    side_copy = BitBoard::bbState.side, enpassant_copy = BitBoard::bbState.enpassant, castle_copy = BitBoard::bbState.canCastle;   \
+
+// restore board state
+#define take_back()                                                       \
+    memcpy(BitBoard::bbState.pieceBitboards, bitboards_copy, 96);                                \
+    memcpy(BitBoard::bbState.occupancies, occupancies_copy, 24);                            \
+    BitBoard::bbState.side = side_copy, BitBoard::bbState.enpassant = enpassant_copy, BitBoard::bbState.canCastle = castle_copy;   \
+
+
+
 /***********************
   --------------------
        MACROS END

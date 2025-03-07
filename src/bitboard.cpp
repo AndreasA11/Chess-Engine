@@ -507,8 +507,10 @@ void BitBoard::printAttackedSquares(int side) {
 
 void BitBoard::copyBitBoard() {
 	//preserve board state
-	std::copy(std::begin(bbState.pieceBitboards), std::end(bbState.pieceBitboards), std::begin(bbState.pieceBitboardsCopy));
-	std::copy(std::begin(bbState.occupancies), std::end(bbState.occupancies), std::begin(bbState.occupanciesCopy));
+	// std::copy(std::begin(bbState.pieceBitboards), std::end(bbState.pieceBitboards), std::begin(bbState.pieceBitboardsCopy));
+	// std::copy(std::begin(bbState.occupancies), std::end(bbState.occupancies), std::begin(bbState.occupanciesCopy));
+    memcpy(BitBoard::bbState.pieceBitboardsCopy, BitBoard::bbState.pieceBitboards, 96);                                \
+    memcpy(BitBoard::bbState.occupanciesCopy, BitBoard::bbState.occupancies, 24);
 	bbState.sideCopy = bbState.side;
 	bbState.enpassantCopy = bbState.enpassant;
 	bbState.canCastleCopy = bbState.canCastle;
@@ -516,9 +518,11 @@ void BitBoard::copyBitBoard() {
 
 void BitBoard::restoreBitBoard() {
     //reserving board state
-    std::copy(std::begin(bbState.pieceBitboardsCopy), std::end(bbState.pieceBitboardsCopy), std::begin(BitBoard::bbState.pieceBitboards));
-	std::copy(std::begin(bbState.occupanciesCopy), std::end(bbState.occupanciesCopy), std::begin(BitBoard::bbState.occupancies));
-	BitBoard::bbState.side = bbState.sideCopy;
+    //std::copy(std::begin(bbState.pieceBitboardsCopy), std::end(bbState.pieceBitboardsCopy), std::begin(BitBoard::bbState.pieceBitboards));
+	//std::copy(std::begin(bbState.occupanciesCopy), std::end(bbState.occupanciesCopy), std::begin(BitBoard::bbState.occupancies));
+	memcpy(BitBoard::bbState.pieceBitboards, BitBoard::bbState.pieceBitboardsCopy, 96);                                \
+    memcpy(BitBoard::bbState.occupancies, BitBoard::bbState.occupanciesCopy, 24);    
+    BitBoard::bbState.side = bbState.sideCopy;
 	BitBoard::bbState.enpassant = bbState.enpassantCopy;
 	BitBoard::bbState.canCastle = bbState.canCastleCopy;
 }

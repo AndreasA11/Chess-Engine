@@ -1,0 +1,32 @@
+position             depth             nodes                       time                        correct # of nodes
+
+start_position       depth: 1          nodes: 20                   time: 0ms                   correct # of nodes: 20
+start_position       depth: 2          nodes: 400                  time: 0ms                   correct # of nodes: 400
+start_position       depth: 3          nodes: 8,902                time: 0ms                   correct # of nodes: 8,902
+start_position       depth: 4          nodes: 197,281              time: 9ms                   correct # of nodes: 197,281
+start_position       depth: 5          nodes: 4,865,609            time: 142ms                 correct # of nodes: 4,865,609
+start_position       depth: 6          nodes: 119,060,324          time: 3,133ms               correct # of nodes: 119,060,324
+start_position       depth: 7          nodes: 3,195,901,860        time: 87,100ms (~1.44min)   correct # of nodes: 3,195,901,860
+start_position       depth: 8          nodes: 84,998,978,956       time: 2214144ms (~37min)    correct # of nodes: 84,998,978,956
+
+position             depth             nodes                       time                        correct # of nodes  
+
+Kiwipete             depth: 1          nodes: 48                   time: 0ms                   correct # of nodes: 48
+Kiwipete             depth: 2          nodes: 2039                 time: 0ms                   correct # of nodes: 2,039
+Kiwipete             depth: 3          nodes: 97,862               time: 3ms                   correct # of nodes: 97,862
+Kiwipete             depth: 4          nodes: 4,085,603            time: 110ms                 correct # of nodes: 4,085,603
+Kiwipete             depth: 5          nodes: 193,690,690          time: 4,938ms               correct # of nodes: 193,690,690
+Kiwipete             depth: 6          nodes: 8,031,647,685        time: 205,345ms (~3.45min)  correct # of nodes: 8,031,647,685
+
+position             depth             nodes                       time                        correct # of nodes  
+
+position6            depth: 1          nodes: 46                   time: 0ms                  correct # of nodes: 46
+position6            depth: 2          nodes: 2,079                time: 0ms                  correct # of nodes: 2,079
+position6            depth: 3          nodes: 89,890               time: 4ms                  correct # of nodes: 89,890
+position6            depth: 4          nodes: 3,894,594            time: 103ms                correct # of nodes: 3,894,594
+position6            depth: 5          nodes: 164,075,551          time: 4,270ms              correct # of nodes: 164,075,551
+position6            depth: 6          nodes: 6,923,051,137        time: 173,100ms (~2.9 min) correct # of nodes: 6,923,051,137
+
+
+ALL TESTS PASS!!!
+
