@@ -1,3 +1,4 @@
+
 position             depth             nodes                       time                        correct # of nodes
 
 start_position       depth: 1          nodes: 20                   time: 0ms                   correct # of nodes: 20
@@ -11,12 +12,12 @@ start_position       depth: 8          nodes: 84,998,978,956       time: 2214144
 
 position             depth             nodes                       time                        correct # of nodes  
 
-Kiwipete             depth: 1          nodes: 48                   time: 0ms                   correct # of nodes: 48
-Kiwipete             depth: 2          nodes: 2039                 time: 0ms                   correct # of nodes: 2,039
-Kiwipete             depth: 3          nodes: 97,862               time: 3ms                   correct # of nodes: 97,862
-Kiwipete             depth: 4          nodes: 4,085,603            time: 110ms                 correct # of nodes: 4,085,603
-Kiwipete             depth: 5          nodes: 193,690,690          time: 4,938ms               correct # of nodes: 193,690,690
-Kiwipete             depth: 6          nodes: 8,031,647,685        time: 205,345ms (~3.45min)  correct # of nodes: 8,031,647,685
+tricky_position      depth: 1          nodes: 48                   time: 0ms                   correct # of nodes: 48
+tricky_position      depth: 2          nodes: 2,039                time: 0ms                  correct # of nodes: 2,039
+tricky_position      depth: 3          nodes: 97,862               time: 3ms                   correct # of nodes: 97,862
+tricky_position      depth: 4          nodes: 4,085,603            time: 110ms                 correct # of nodes: 4,085,603
+tricky_position      depth: 5          nodes: 193,690,690          time: 4,938ms               correct # of nodes: 193,690,690
+tricky_position      depth: 6          nodes: 8,031,647,685        time: 205,345ms (~3.45min)  correct # of nodes: 8,031,647,685
 
 position             depth             nodes                       time                        correct # of nodes  
 

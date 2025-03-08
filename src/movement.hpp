@@ -15,13 +15,7 @@ struct Moves{
 };
 
 namespace Movement {
-    // extern Moves moveStruct;
-
-    //add a move to the moves list, update move counter
-    // inline void addMove(int move) {  
-    //     moveStruct.moves[moveStruct.moveCount] = move;
-    //     ++moveStruct.moveCount;
-    // }
+    
 
     inline void addMove(Moves &moveList, int move) {
         moveList.moves[moveList.moveCount] = move;
@@ -29,8 +23,6 @@ namespace Movement {
     }
 
     //generate all moves
-    //void generateMoves();
-
     void generateMoves(Moves &moveList);
 
     

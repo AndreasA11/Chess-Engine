@@ -1,8 +1,6 @@
 #include "movement.hpp"
 #include "bitboard.hpp"
 
-// Moves Movement::moveStruct = Moves();
-
 void Movement::printMove(int move) {
     if(getMovePromo(move)) {
         std::cout << tileToCoord[getMoveSource(move)] 
@@ -350,7 +348,7 @@ int Movement::makeMove(int move, int moveFlag) {
     if(moveFlag == allMoves) {
         //quiet moves
         //preserve board state
-        BitBoard::copyBitBoard();
+        copy_board();
         //parse move
         int sourceTile = getMoveSource(move);
         int targetTile = getMoveTarget(move);
@@ -452,7 +450,7 @@ int Movement::makeMove(int move, int moveFlag) {
         if(BitBoard::isTileAttacked((BitBoard::bbState.side == White) 
             ? BitBoard::getLSHBIndex(BitBoard::bbState.pieceBitboards[k]) 
                 : BitBoard::getLSHBIndex(BitBoard::bbState.pieceBitboards[K]), BitBoard::bbState.side)) {
-            BitBoard::restoreBitBoard();
+            take_back();
             return 0;
         } else {
             return 1;

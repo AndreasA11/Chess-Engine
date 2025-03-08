@@ -3,6 +3,9 @@
 
 #include "consts.hpp"
 #include "magicNumbers.hpp"
+#include <algorithm>
+
+
 
 namespace BitBoard {
     
@@ -19,18 +22,6 @@ namespace BitBoard {
         uint64_t pieceBitboards[12];
         //occupancies for white, black, and both colored pieces
         uint64_t occupancies[3];
-
-        //copy for preserving and restoring gamestate
-        //side
-        int sideCopy;
-        //en passant
-        int enpassantCopy;
-        //castling rights
-        int canCastleCopy;
-        //bitboard for all 12 pieces
-        uint64_t pieceBitboardsCopy[12];
-        //occupancies for white, black, and both colored pieces
-        uint64_t occupanciesCopy[3];
 
         //attack tables
         uint64_t pawnAttack[2][64]; //[color][tile]
@@ -124,13 +115,8 @@ namespace BitBoard {
     void printBoard();
     //print all tiles that are attacked
     void printAttackedSquares(int side);
-    //parse FEN 
-    void parseFEN(std::string fen);
+    
 
-    //copy board
-    void copyBitBoard();
-    //restor board
-    void restoreBitBoard();
     
 };
 

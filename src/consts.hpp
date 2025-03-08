@@ -134,7 +134,24 @@ const int castlingRights[64] = {
   --------------------
 ***********************/
 
+/***********************
+  --------------------
+      TESTING FENS
+  --------------------
+***********************/
 
+const std::string empty_board = "8/8/8/8/8/8/8/8 w - - ";
+const std::string start_position = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 ";
+const std::string tricky_position = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 ";
+const std::string killer_position = "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1";
+const std::string cmk_position = "r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9 ";
+const std::string position6 = "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10 ";
+
+/***********************
+  --------------------
+      TESTING FENS
+  --------------------
+***********************/
 
 /***********************
   --------------------
@@ -168,17 +185,19 @@ const int castlingRights[64] = {
 #define getEnPassant(move) (move & 0x400000)
 #define getCastling(move) (move & 0x800000)
 
-#define copy_board()                                                      \
-    uint64_t bitboards_copy[12], occupancies_copy[3];                          \
-    int side_copy, enpassant_copy, castle_copy;                           \
-    memcpy(bitboards_copy, BitBoard::bbState.pieceBitboards, 96);                                \
-    memcpy(occupancies_copy, BitBoard::bbState.occupancies, 24);                            \
-    side_copy = BitBoard::bbState.side, enpassant_copy = BitBoard::bbState.enpassant, castle_copy = BitBoard::bbState.canCastle;   \
+#define copy_board()   \
+    uint64_t bitboards_copy[12], occupancies_copy[3];    \
+    int side_copy, enpassant_copy, castle_copy;   \
+    memcpy(bitboards_copy, BitBoard::bbState.pieceBitboards, 96);  \
+    memcpy(occupancies_copy, BitBoard::bbState.occupancies, 24); \
+    side_copy = BitBoard::bbState.side; \
+    enpassant_copy = BitBoard::bbState.enpassant; \
+    castle_copy = BitBoard::bbState.canCastle;   \
 
 // restore board state
-#define take_back()                                                       \
-    memcpy(BitBoard::bbState.pieceBitboards, bitboards_copy, 96);                                \
-    memcpy(BitBoard::bbState.occupancies, occupancies_copy, 24);                            \
+#define take_back()                                                \
+    memcpy(BitBoard::bbState.pieceBitboards, bitboards_copy, 96);  \
+    memcpy(BitBoard::bbState.occupancies, occupancies_copy, 24);   \
     BitBoard::bbState.side = side_copy, BitBoard::bbState.enpassant = enpassant_copy, BitBoard::bbState.canCastle = castle_copy;   \
 
 

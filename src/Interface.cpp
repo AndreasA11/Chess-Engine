@@ -1,65 +1,37 @@
-#include "Interface.hpp"
-#include <iostream>
-#include <string>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include "interface.hpp"
+#include "bitboard.hpp"
+#include "movement.hpp"
 
-SDL_Renderer* Interface::renderer = nullptr;
-SDL_Event Interface::event;
-bool Interface::isRunning = false;
+int Interface::parseMove(std::string strIn) {
+	Moves moveList;
+	Movement::generateMoves(moveList);
 
-
-void Interface::init(const char* title, int width, int height, bool fullscreen)
-{
-	int flags = 0;
-	
-	if (fullscreen)
-	{
-		flags = SDL_WINDOW_FULLSCREEN;
-	}
-
-	if (SDL_Init(SDL_INIT_EVERYTHING) == 0)
-	{
-		window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, flags);
-		renderer = SDL_CreateRenderer(window, -1, 0);
-		if (renderer)
-		{
-			SDL_SetRenderDrawColor(renderer, 220, 220, 220, 255);
+	int sourceTile = (strIn[0] - 'a') + (8 - (strIn[1] - '0')) * 8;
+	int targetTile = (strIn[2] - 'a') + (8 - (strIn[3] - '0')) * 8;	
+	//loop over moves in a move list
+	for(int count = 0; count < moveList.moveCount; ++count) {
+		int move = moveList.moves[count];
+		//source and target tile are available in the move list
+		if(sourceTile == getMoveSource(move) && targetTile == getMoveTarget(move)) {
+			int promoPiece = getMovePromo(move);
+			if(promoPiece) {
+				if((promoPiece == Q || promoPiece == q) && strIn[4] == 'q') {
+					return move; //queen promotion
+				} else if ((promoPiece == R || promoPiece == r) && strIn[4] == 'r') {
+					return move; //rook promotion
+				} else if ((promoPiece == B || promoPiece == b) && strIn[4] == 'b') {
+					return move; //bishop promotion
+				} else if((promoPiece == N || promoPiece == n) && strIn[4] == 'n') {
+					return move; //knight promotion
+				} else {
+					continue;
+				}
+			}
+			return move;
 		}
-
-		isRunning = true;
 	}
-
-
-}
-
-
-void Interface::handleEvents()
-{
-	
-	SDL_PollEvent(&event);
-
-	switch (event.type)
-	{
-	case SDL_QUIT :
-		isRunning = false;
-		break;
-	default:
-		break;
-	}
-}
-
-
-void Interface::render()
-{
-	SDL_RenderClear(renderer);
-	
-
-	SDL_RenderPresent(renderer);
-}
-
-void Interface::clean()
-{
-	SDL_DestroyWindow(window);
-	SDL_DestroyRenderer(renderer);
-	SDL_Quit();
+	//illegal move
+	return 0;
 }
