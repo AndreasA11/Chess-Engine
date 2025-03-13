@@ -1,7 +1,7 @@
 #include "fen.hpp"
 #include <iostream>
 
-void fen::parseFEN(std::string fen) {
+void Fen::parseFEN(std::string fen) {
     memset(BitBoard::bbState.pieceBitboards, ZERO, sizeof(BitBoard::bbState.pieceBitboards));
     memset(BitBoard::bbState.occupancies, ZERO, sizeof(BitBoard::bbState.occupancies));
     BitBoard::bbState.side = White;

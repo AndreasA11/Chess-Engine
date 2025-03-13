@@ -4,7 +4,8 @@
 #include "engine.hpp"
 #include "tests.hpp"
 #include "fen.hpp"
-#include "interface.hpp"
+#include "UCI.hpp"
+#include "search.hpp"
 
 /*
 const std::string empty_board = "8/8/8/8/8/8/8/8 w - - ";
@@ -40,14 +41,15 @@ int main(int argc, char *argv[]) {
 	BitBoard::initLeaperAttacks();
 	BitBoard::initSliderAttacks(bishop);
 	BitBoard::initSliderAttacks(rook);
-	fen::parseFEN("r3k2r/p11pqpb1/bn2pnp1/2pPN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq c6 0 1 ");
-	BitBoard::printBoard();
-	int move = Interface::parseMove("d5c6");
-	if(move) {
-		Movement::makeMove(move, allMoves);
+	
+	
+	int debug =1;
+	if(debug) {
+		Fen::parseFEN(start_position);
 		BitBoard::printBoard();
+		Search::searchPosition(1);
 	} else {
-		std::cout << "illegal move!\n";
+		UCImanager::UCIloop();
 	}
 
 	return 0;

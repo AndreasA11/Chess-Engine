@@ -1,6 +1,6 @@
 #include "bitboard.hpp"
 
-namespace fen {
+namespace Fen {
     //parse FEN 
     void parseFEN(std::string fen);
 
