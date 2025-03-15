@@ -1,9 +1,9 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
 #include "UCI.hpp"
 #include "search.hpp"
 #include "fen.hpp"
 #include "consts.hpp"
+
+
 int UCImanager::parseMove(std::string strIn) {
 	Moves moveList;
 	Movement::generateMoves(moveList);

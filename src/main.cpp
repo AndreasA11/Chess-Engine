@@ -24,18 +24,6 @@ const std::string position6 = "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1P
 ***********************/
 
 int main(int argc, char *argv[]) {
-	// Interface *interface = nullptr;
-	// interface = new Interface();
-	// interface->init("GameWindow", 800, 640, false);
-
-	// while (interface->running())
-	// {
-	// 	interface->handleEvents();
-	// 	interface->render();
-	// }
-
-	// interface->clean();
-	
 
 	
 	BitBoard::initLeaperAttacks();
