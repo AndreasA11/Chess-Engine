@@ -3,7 +3,7 @@
     {
       "type": "cppbuild",
       "label": "build",
-      "command": "make",
+      "command": "make debug",
       "args": [],
       "options": {
         "cwd": "${workspaceFolder}"

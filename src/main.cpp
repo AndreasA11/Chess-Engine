@@ -31,11 +31,17 @@ int main(int argc, char *argv[]) {
 	BitBoard::initSliderAttacks(rook);
 	
 	
-	int debug =1;
+	int debug = 1;
+
 	if(debug) {
-		Fen::parseFEN(start_position);
+		Fen::parseFEN(tricky_position);
 		BitBoard::printBoard();
-		Search::searchPosition(1);
+		Search::searchPosition(6);
+		BitBoard::printBoard();
+		//BitBoard::printBoard();
+
+
+
 	} else {
 		UCImanager::UCIloop();
 	}
@@ -49,3 +55,14 @@ int main(int argc, char *argv[]) {
 	   DRIVER END
   --------------------
 ***********************/
+
+
+
+
+
+
+
+
+
+
+

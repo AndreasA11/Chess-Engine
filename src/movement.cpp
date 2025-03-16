@@ -1,20 +1,20 @@
 #include "movement.hpp"
 #include "bitboard.hpp"
-
+#include "cassert"
 void Movement::printMove(int move) {
     if(getMovePromo(move)) {
         std::cout << tileToCoord[getMoveSource(move)] 
             << tileToCoord[getMoveTarget(move)]
-            << promotedPieces[getMovePromo(move)] << "\n"; 
+            << promotedPieces[getMovePromo(move)]; 
     } else {
         std::cout << tileToCoord[getMoveSource(move)] 
-            << tileToCoord[getMoveTarget(move)] << "\n";
+            << tileToCoord[getMoveTarget(move)];
     }
     
 }
 
 void Movement::printMoveList(Moves &moveList) { 
-    std::cout << "\n    move   piece  capture   double   enpassant   castling\n\n";
+    std::cout << "\n    move   piece  capture   double   enpassant   castling\n" << std::endl;
 
     if(!moveList.moveCount) {
         std::cout << "    No move in move list!\n";
@@ -34,8 +34,8 @@ void Movement::printMoveList(Moves &moveList) {
             << (getEnPassant(move) ? 1 : 0) << "           "
             << (getCastling(move) ? 1 : 0) << "\n";     
         
-    }    
-    std::cout << "\n    Total number of moves: " << moveList.moveCount << "\n";
+    }     
+    std::cout << "\n    Total number of moves: " << moveList.moveCount << std::endl;
 }
 
 void Movement::generateMoves(Moves &moveList) {
@@ -345,6 +345,7 @@ void Movement::bitKingMoves(Moves &moveList, int piece, uint64_t bitboard, int s
 }
 
 int Movement::makeMove(int move, int moveFlag) {
+   
     if(moveFlag == allMoves) {
         //quiet moves
         //preserve board state
@@ -447,14 +448,20 @@ int Movement::makeMove(int move, int moveFlag) {
         BitBoard::bbState.side ^= 1;
 
         //make sure king has not been exposed into a check
-        if(BitBoard::isTileAttacked((BitBoard::bbState.side == White) 
+        int tile = (BitBoard::bbState.side == White) 
+        ? BitBoard::getLSHBIndex(BitBoard::bbState.pieceBitboards[k]) 
+        : BitBoard::getLSHBIndex(BitBoard::bbState.pieceBitboards[K]);
+        if(tile != -1) {
+            if(BitBoard::isTileAttacked((BitBoard::bbState.side == White) 
             ? BitBoard::getLSHBIndex(BitBoard::bbState.pieceBitboards[k]) 
-                : BitBoard::getLSHBIndex(BitBoard::bbState.pieceBitboards[K]), BitBoard::bbState.side)) {
-            take_back();
-            return 0;
-        } else {
-            return 1;
+            : BitBoard::getLSHBIndex(BitBoard::bbState.pieceBitboards[K]), BitBoard::bbState.side)) {
+                take_back();
+                return 0;
+            } else {
+                return 1;
+            }
         }
+        
     } else {
         //move is capture   
         if(getMoveCapture(move)) {

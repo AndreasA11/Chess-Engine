@@ -1,5 +1,6 @@
 #include "bitboard.hpp"
 #include <iostream>
+#include <cassert>
 BitBoard::BitBoardState BitBoard::bbState = BitBoard::BitBoardState();  
 
 void BitBoard::printBitBoard(uint64_t bitBoardIn) {
@@ -16,7 +17,8 @@ void BitBoard::printBitBoard(uint64_t bitBoardIn) {
         std::cout << "\n";
     }
     std::cout << "\n   a b c d e f g h\n";
-    std::cout << "--------------------\n\n";
+    std::cout << "--------------------\n" << std::endl;
+    
     
 }
 
@@ -42,7 +44,7 @@ uint64_t BitBoard::maskPawnAttacks(int tile, Color colorIn) {
     uint64_t bitboardIn = ZERO;
 
     setBitOn(bitboardIn, tile);
-    std::cout << "\n";
+    std::cout << std::endl;
     if(colorIn == White) {
         if((bitboardIn >> 7) & notAfile) {
             attacks |= (bitboardIn >> 7); //attack up left
@@ -322,10 +324,10 @@ void BitBoard::printBoard() {
             }
             std::cout << " " << out;
         }
-        std::cout << "\n";
+        std::cout << std::endl;
     }
     std::cout << "\n   a b c d e f g h\n";
-    std::cout << "--------------------\n\n";
+    std::cout << "--------------------\n" << std::endl;
 
     if(bbState.side == White) {
         std::cout << "side to move: " << "white\n";
@@ -336,7 +338,7 @@ void BitBoard::printBoard() {
     if(bbState.enpassant != noTile) {
         std::cout << "En passant: " << tileToCoord[bbState.enpassant] << "\n";
     } else {
-        std::cout << "En passant: " <<  "no\n\n";
+        std::cout << "En passant: " <<  "no\n" << std::endl;
     }
 
     std::cout << "Castling: ";
@@ -360,9 +362,9 @@ void BitBoard::printBoard() {
     } else {
         std::cout << '-';
     }
-    std::cout << "\n\n";
+    std::cout << "\n" << std::endl;
     
-    std::cout << "--------------------\n\n";
+    std::cout << "--------------------\n" << std::endl;
     
 
 }
@@ -411,7 +413,7 @@ void BitBoard::printAttackedSquares(int side) {
         }
         std::cout << "\n";
     }
-    std::cout << "     a b c d e f g h\n\n";
+    std::cout << "     a b c d e f g h\n" << std::endl;
 }
 
 
